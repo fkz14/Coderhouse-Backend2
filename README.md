@@ -30,7 +30,7 @@ git clone <URL_DEL_REPO>
 npm install
 ```
 
-3. Crear archivo `.env` en la raíz copiando `.env.example`:
+3. Crear archivo `.env` en la raíz copiando `.env`:
 
 ```bash
 cp .env.example .env

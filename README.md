@@ -266,12 +266,6 @@ npm install
 
 ---
 
-## 📝 Licencia
-
-ISC
-
----
-
 ## 👤 Autor
 
 Proyecto desarrollado para CoderHouse Backend 2

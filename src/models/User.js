@@ -13,15 +13,23 @@ const userSchema = new mongoose.Schema({
 
 // Encriptar contraseña antes de guardar
 userSchema.pre('save', function (next) {
-  if (!this.isModified('password')) return next();
-  const saltRounds = 10;
-  this.password = bcrypt.hashSync(this.password, saltRounds);
-  next();
+  try {
+    if (!this.isModified('password')) return next();
+    const saltRounds = 10;
+    this.password = bcrypt.hashSync(this.password, saltRounds);
+    return next();
+  } catch (err) {
+    return next(err);
+  }
 });
 
 // Método para comparar password
 userSchema.methods.isValidPassword = function (password) {
-  return bcrypt.compareSync(password, this.password);
+  try {
+    return bcrypt.compareSync(password, this.password);
+  } catch (err) {
+    return false;
+  }
 };
 
 // Quitar password al devolver usuario

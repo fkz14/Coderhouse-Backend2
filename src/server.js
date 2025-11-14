@@ -3,28 +3,37 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
 dotenv.config();
-const app = express();
-app.use(express.json());
 
-// Conexión a MongoDB Compass
-mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log('✅ Conectado a MongoDB Compass'))
-  .catch(err => console.error('❌ Error conectando a Mongo:', err));
+async function start() {
+  try {
+    const app = express();
+    app.use(express.json());
 
-app.get('/', (req, res) => res.send('Servidor y MongoDB funcionando'));
+    // Conexión a MongoDB Compass
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('✅ Conectado a MongoDB Compass');
 
-const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+    app.get('/', (req, res) => res.send('Servidor y MongoDB funcionando'));
 
-// Rutas
-const sessionsRouter = require('./routes/sessions.routes');
-app.use('/api/sessions', sessionsRouter);
+    // Rutas
+    const sessionsRouter = require('./routes/sessions.routes');
+    app.use('/api/sessions', sessionsRouter);
 
-const usersRouter = require('./routes/users.routes');
-app.use('/api/users', usersRouter);
+    const usersRouter = require('./routes/users.routes');
+    app.use('/api/users', usersRouter);
 
-const productsRouter = require('./routes/products.routes');
-app.use('/api/products', productsRouter);
+    const productsRouter = require('./routes/products.routes');
+    app.use('/api/products', productsRouter);
 
-const cartsRouter = require('./routes/carts.routes');
-app.use('/api/carts', cartsRouter);
+    const cartsRouter = require('./routes/carts.routes');
+    app.use('/api/carts', cartsRouter);
+
+    const PORT = process.env.PORT || 3000;
+    app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
+  } catch (err) {
+    console.error('❌ Error iniciando servidor:', err);
+    process.exit(1);
+  }
+}
+
+start();

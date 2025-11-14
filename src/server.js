@@ -16,8 +16,15 @@ app.get('/', (req, res) => res.send('Servidor y MongoDB funcionando'));
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => console.log(`🚀 Servidor corriendo en puerto ${PORT}`));
 
+// Rutas
 const sessionsRouter = require('./routes/sessions.routes');
 app.use('/api/sessions', sessionsRouter);
 
 const usersRouter = require('./routes/users.routes');
 app.use('/api/users', usersRouter);
+
+const productsRouter = require('./routes/products.routes');
+app.use('/api/products', productsRouter);
+
+const cartsRouter = require('./routes/carts.routes');
+app.use('/api/carts', cartsRouter);

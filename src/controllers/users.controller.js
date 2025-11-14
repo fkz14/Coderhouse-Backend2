@@ -1,23 +1,24 @@
-const User = require('../models/User');
+const userRepository = require('../repository/user.repository');
+const UserDTO = require('../dto/user.dto');
 
 // Listar todos los usuarios
 async function getAll(req, res) {
   try {
-    const users = await User.find().select('-password');
+    const users = await userRepository.getAllUsers();
     res.json(users);
   } catch (err) {
-    res.status(500).json({ error: 'Error al listar usuarios' });
+    res.status(500).json({ error: err.message });
   }
 }
 
 // Traer usuario por ID
 async function getById(req, res) {
   try {
-    const user = await User.findById(req.params.id).select('-password');
+    const user = await userRepository.getUserById(req.params.id);
     if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
     res.json(user);
   } catch (err) {
-    res.status(500).json({ error: 'Error al buscar usuario' });
+    res.status(500).json({ error: err.message });
   }
 }
 
@@ -25,31 +26,29 @@ async function getById(req, res) {
 async function updateUser(req, res) {
   try {
     const { first_name, last_name, email, age, password, role } = req.body;
-    const user = await User.findById(req.params.id);
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    const updateData = {};
 
-    if (first_name) user.first_name = first_name;
-    if (last_name) user.last_name = last_name;
-    if (email) user.email = email;
-    if (age) user.age = age;
-    if (role) user.role = role;
-    if (password) user.password = password; // se encripta por pre-save
+    if (first_name) updateData.first_name = first_name;
+    if (last_name) updateData.last_name = last_name;
+    if (email) updateData.email = email;
+    if (age) updateData.age = age;
+    if (role) updateData.role = role;
+    if (password) updateData.password = password;
 
-    await user.save();
-    res.json({ message: 'Usuario actualizado', user: user.toJSON() });
+    const user = await userRepository.updateUser(req.params.id, updateData);
+    res.json({ message: 'Usuario actualizado', user: new UserDTO(user) });
   } catch (err) {
-    res.status(500).json({ error: 'Error al actualizar usuario' });
+    res.status(400).json({ error: err.message });
   }
 }
 
 // Eliminar usuario
 async function deleteUser(req, res) {
   try {
-    const user = await User.findByIdAndDelete(req.params.id);
-    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+    await userRepository.deleteUser(req.params.id);
     res.json({ message: 'Usuario eliminado' });
   } catch (err) {
-    res.status(500).json({ error: 'Error al eliminar usuario' });
+    res.status(400).json({ error: err.message });
   }
 }
 

@@ -1,21 +1,20 @@
 const passport = require('passport');
 const { generateToken } = require('../utils/jwt.utils');
-const User = require('../models/User');
+const userRepository = require('../repository/user.repository');
+const UserDTO = require('../dto/user.dto');
 
 // Registro
 async function register(req, res) {
   try {
     const { first_name, last_name, email, age, password } = req.body;
-    if (!first_name || !last_name || !email || !password) return res.status(400).json({ error: 'Faltan datos' });
+    if (!first_name || !last_name || !email || !password) {
+      return res.status(400).json({ error: 'Faltan datos' });
+    }
 
-    const exists = await User.findOne({ email });
-    if (exists) return res.status(409).json({ error: 'Email ya registrado' });
-
-    const newUser = new User({ first_name, last_name, email, age, password });
-    await newUser.save();
-    res.status(201).json({ message: 'Usuario creado', user: newUser.toJSON() });
+    const user = await userRepository.register({ first_name, last_name, email, age, password });
+    res.status(201).json({ message: 'Usuario creado', user: new UserDTO(user) });
   } catch (err) {
-    res.status(500).json({ error: 'Error en registro' });
+    res.status(400).json({ error: err.message });
   }
 }
 
@@ -30,10 +29,48 @@ function login(req, res, next) {
   })(req, res, next);
 }
 
-// Current
+// Current - Devuelve usuario con DTO
 function current(req, res) {
   if (!req.user) return res.status(401).json({ error: 'Token inválido o no provisto' });
-  res.json({ user: req.user });
+  res.json({ user: new UserDTO(req.user) });
 }
 
-module.exports = { register, login, current };
+// Forgot Password - Generar token de recuperación
+async function forgotPassword(req, res) {
+  try {
+    const { email } = req.body;
+    if (!email) {
+      return res.status(400).json({ error: 'Email requerido' });
+    }
+
+    const result = await userRepository.generateResetToken(email);
+    res.json({
+      message: 'Token de recuperación generado',
+      resetToken: result.resetToken
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
+// Reset Password - Cambiar contraseña
+async function resetPassword(req, res) {
+  try {
+    const { token } = req.params;
+    const { newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({ error: 'Token y nueva contraseña requeridos' });
+    }
+
+    const user = await userRepository.resetPassword(token, newPassword);
+    res.json({
+      message: 'Contraseña actualizada correctamente',
+      user: new UserDTO(user)
+    });
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+}
+
+module.exports = { register, login, current, forgotPassword, resetPassword };
